@@ -15,22 +15,19 @@ const jwtSecret = process.env.JWTKEY;
 
 
 app.use("/customer/auth/*", function auth(req,res,next){
-    const reqSession = req.session
-    const sessionAcesstoken = req.session.accessToken
-    if (reqSession && sessionAcesstoken){
-        const token = req.session.accessToken;
-    
-    jwt.verify(token,jwtSecret,(err,decoded)=>{
-        if (err) {
-            return res.status(401).json({ message: 'Unauthorized' });
-        }
-
-        req.user = decoded;
-        next();
-    } )
-    }else {
-        res.status(401).json({ message: 'Unauthorized' });
-    }
+    if (req.session.token) {
+        const token = req.session.token['tokenAccess'];
+        jwt.verify(token, 'nathan', (err, user) => {
+          if (!err) {
+            req.user = user;
+            next();
+          } else {
+            return res.status(403).json({ message: 'User not authenticated' })
+          }
+        });
+      } else {
+        return res.status(403).json({ message: 'User not logged in' })
+      }
 });
  
 const PORT =5000;
